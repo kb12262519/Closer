@@ -1,5 +1,6 @@
 package com.example.closer;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -7,18 +8,16 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-import com.google.android.gms.maps.model.LatLng;
 
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
@@ -29,12 +28,13 @@ public class KakaoMapActivity extends AppCompatActivity {
 
     private MapView mapView = null;
     ViewGroup mapViewContainer = null;
-    MapPoint mapPoint = null;
-    private LatLng presentPosition = null;
+    MapPoint myMapPoint = null;
+    MapPoint desMapPoint = null;
     private Location location = null;
     private int cnt = 0;
     private MapPOIItem posMarker = null;
     private MapPOIItem desMarker = null;
+    Handler handler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,11 +42,14 @@ public class KakaoMapActivity extends AppCompatActivity {
         setContentView(R.layout.kakao_maps);
 
         final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        handler = new Handler();
 
         try {
-            if (Build.VERSION.SDK_INT >= 23 &&
-                    ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= 23
+                    && ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
             } else {
 
                 location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -56,75 +59,77 @@ public class KakaoMapActivity extends AppCompatActivity {
 
                 mapView = new MapView(this);
                 mapViewContainer = findViewById(R.id.map_view);
-                try {
-                    mapPoint = MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
-                } catch (Exception e) {
-                    mapPoint = MapPoint.mapPointWithGeoCoord(0, 0);
-                }
-                mapView.setMapCenterPoint(mapPoint, false);
+
+                myMapPoint = MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
+
+                mapView.setMapCenterPoint(myMapPoint, false);
                 //true면 앱 실행 시 애니메이션 효과가 나오고 false면 애니메이션이 나오지않음.
                 mapViewContainer.addView(mapView);
 
                 posMarker = new MapPOIItem();
-                newMarker("내 위치", mapPoint, mapView, posMarker);
-                mapPoint = MapPoint.mapPointWithGeoCoord(36.543235, 128.793878);
-                desMarker = new MapPOIItem();
-                newMarker("상대 위치", mapPoint, mapView, desMarker);
+                newMarker("내 위치", myMapPoint, mapView, posMarker);
 
+                desMapPoint = MapPoint.mapPointWithGeoCoord(37.576947, 126.976830);
+                desMarker = new MapPOIItem();
+                newMarker("상대 위치", desMapPoint, mapView, desMarker);
 
             }
-
-
-        } catch (IllegalArgumentException e1) {
-            Toast.makeText(getApplicationContext(), "IllegalArgumentException", Toast.LENGTH_LONG).show();
-        } catch (RuntimeException e2) {
-            Toast.makeText(getApplicationContext(), e2.getMessage(), Toast.LENGTH_LONG).show();
-            Log.d("?", e2.getMessage());
+        } catch (Exception e) {
+            //this.finish();
+            Log.d("??", e.getMessage());
+            //Toast.makeText(getApplicationContext(), "GPS 연결에 실패하였습니다.", Toast.LENGTH_LONG).show();
         }
 
-        /*catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "GPS 연결에 실패하였습니다.", Toast.LENGTH_LONG).show();
-            this.finish();
-        }*/
         ImageView refresh = findViewById(R.id.refresh);
         refresh.setImageResource(R.drawable.refe);
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                refreshMyPosition();
+                refreshPosition();
             }
         });
+        Log.d("^^*", "되나여");
 
     }
 
-    private void refreshMyPosition() {
+    private void refreshPosition() {
+        Log.d("?!?", "1");
         try {
+
+            Log.d("?!?", "2");
             mapView.setShowCurrentLocationMarker(true);
-            String providerValue = location.getProvider();
-            double longitudeValue = 0;
-            double latitudeValue = 0;
 
-            try {
-                longitudeValue = location.getLongitude();
-                latitudeValue = location.getLatitude();
-            } catch (Exception e) {
-                longitudeValue = 0;
-                latitudeValue = 0;
-            }
+            posMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude()));
 
-            posMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(latitudeValue, longitudeValue));
 
+            Log.d("?!?", "3");
             final TextView cntText = findViewById(R.id.cnt_txt);
             final TextView txt = findViewById(R.id.txt);
+            final TextView hiddenMsg = findViewById(R.id.hiddenMsg);
 
-            Task test = new Task(posMarker);
-            cntText.setText("cnt :" + (++cnt) + "\n" + providerValue);
-            txt.setText((String) test.execute().get());
-            //txt.setText(latitudeValue + "\n" + longitudeValue);
+            String phoneNum = "01037523482";
+            String getPhone = "01028763482";
+            String testText = null;
+
+
+            Task task = new Task(handler, hiddenMsg, posMarker, desMarker);
+            cntText.setText("cnt :" + (++cnt) + "\n" + desMarker.getMapPoint().getMapPointGeoCoord().latitude + "\n" + desMarker.getMapPoint().getMapPointGeoCoord().longitude + "\n");
+            task.execute();
+
+            txt.setText(location.getLatitude() + " , " + location.getLongitude());
+
         } catch (Exception e) {
         }
     }
 
+
+    /*
+                TelephonyManager telManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                String PhoneNum = telManager.getLine1Number();
+                if (PhoneNum.startsWith("+82")) {
+                    PhoneNum = PhoneNum.replace("+82", "0");
+                }
+                */
     private void newMarker(String name, MapPoint mapPoint, MapView mapView, MapPOIItem marker) {
         try {
             marker.setItemName(name);
@@ -169,7 +174,7 @@ public class KakaoMapActivity extends AppCompatActivity {
 
     final LocationListener gpsLocationListener = new LocationListener() {
         public void onLocationChanged(Location location) {
-            refreshMyPosition();
+            refreshPosition();
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -181,17 +186,6 @@ public class KakaoMapActivity extends AppCompatActivity {
         public void onProviderDisabled(String provider) {
         }
     };
-/*
-    public MapPoint findPos(String name) {
-        try {
-            MapPoint mp = null;
-
-
-        } catch (Exception e) {
-        }
-        return null;
-    }
-    */
 
     public void onPause() {
         super.onPause();
