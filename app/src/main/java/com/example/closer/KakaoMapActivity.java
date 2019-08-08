@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -28,13 +29,13 @@ public class KakaoMapActivity extends AppCompatActivity {
 
     private MapView mapView = null;
     ViewGroup mapViewContainer = null;
-    MapPoint myMapPoint = null;
-    MapPoint desMapPoint = null;
+    private MapPoint myMapPoint = null;
+    private MapPoint desMapPoint = null;
+    private MapPOIItem myMarker = null;
+    private MapPOIItem[] desMarker = new MapPOIItem[1];
     private Location location = null;
     private int cnt = 0;
-    private MapPOIItem posMarker = null;
-    private MapPOIItem desMarker = null;
-    Handler handler = null;
+    private Handler handler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,67 +58,46 @@ public class KakaoMapActivity extends AppCompatActivity {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, gpsLocationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, gpsLocationListener);
 
-                mapView = new MapView(this);
-                mapViewContainer = findViewById(R.id.map_view);
-
                 myMapPoint = MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
 
+                mapView = new MapView(this);
+                mapViewContainer = findViewById(R.id.map_view);
                 mapView.setMapCenterPoint(myMapPoint, false);
                 //true면 앱 실행 시 애니메이션 효과가 나오고 false면 애니메이션이 나오지않음.
                 mapViewContainer.addView(mapView);
 
-                posMarker = new MapPOIItem();
-                newMarker("내 위치", myMapPoint, mapView, posMarker);
+                myMarker = new MapPOIItem();
+                newMarker("내 위치", myMapPoint, mapView, myMarker);
 
                 desMapPoint = MapPoint.mapPointWithGeoCoord(37.576947, 126.976830);
-                desMarker = new MapPOIItem();
-                newMarker("상대 위치", desMapPoint, mapView, desMarker);
+                desMarker[0] = new MapPOIItem();
+                newMarker("상대 위치", desMapPoint, mapView, desMarker[0]);
 
             }
+            ImageView refresh = findViewById(R.id.refresh);
+            refresh.setImageResource(R.drawable.refe);
+            refresh.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    refreshPosition();
+                }
+            });
         } catch (Exception e) {
             //this.finish();
             Log.d("??", e.getMessage());
-            //Toast.makeText(getApplicationContext(), "GPS 연결에 실패하였습니다.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "GPS 연결에 실패하였습니다.", Toast.LENGTH_LONG).show();
         }
-
-        ImageView refresh = findViewById(R.id.refresh);
-        refresh.setImageResource(R.drawable.refe);
-        refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                refreshPosition();
-            }
-        });
-        Log.d("^^*", "되나여");
-
     }
 
     private void refreshPosition() {
-        Log.d("?!?", "1");
         try {
+            myMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude()));
 
-            Log.d("?!?", "2");
-            mapView.setShowCurrentLocationMarker(true);
-
-            posMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude()));
-
-
-            Log.d("?!?", "3");
-            final TextView cntText = findViewById(R.id.cnt_txt);
-            final TextView txt = findViewById(R.id.txt);
-            final TextView hiddenMsg = findViewById(R.id.hiddenMsg);
-
-            String phoneNum = "01037523482";
-            String getPhone = "01028763482";
-            String testText = null;
-
-
-            Task task = new Task(handler, hiddenMsg, posMarker, desMarker);
-            cntText.setText("cnt :" + (++cnt) + "\n" + desMarker.getMapPoint().getMapPointGeoCoord().latitude + "\n" + desMarker.getMapPoint().getMapPointGeoCoord().longitude + "\n");
+            Task task = new Task(handler, myMarker, desMarker);
             task.execute();
 
-            txt.setText(location.getLatitude() + " , " + location.getLongitude());
-
+            TextView cnt_txt = findViewById(R.id.cnt_txt);
+            cnt_txt.setText(++cnt);
         } catch (Exception e) {
         }
     }
@@ -133,42 +113,12 @@ public class KakaoMapActivity extends AppCompatActivity {
     private void newMarker(String name, MapPoint mapPoint, MapView mapView, MapPOIItem marker) {
         try {
             marker.setItemName(name);
-        } catch (Exception e100) {
-            Log.e("?", "E1");
-        }
-        try {
-
             marker.setTag(0);
-        } catch (Exception e101) {
-            Log.e("?", "E2");
-        }
-        try {
             marker.setMapPoint(mapPoint);
-        } catch (Exception e102) {
-            Log.e("?", "E3");
-        }
-        try {
-            marker.setMarkerType(MapPOIItem.MarkerType.BluePin);
-        } catch (Exception e103) {
-            Log.e("?", "E4");
-        }
-        try {
             marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
-        } catch (
-                Exception e104) {
-            Log.e("?", "E5");
-        }
-        try {
             mapView.addPOIItem(marker);
-        } catch (
-                Exception e105) {
-            Log.e("?", "E6");
-        }
-        try {
             mapView.setZoomLevel(1, true);
-        } catch (
-                Exception e106) {
-            Log.e("?", "E7");
+        } catch ( Exception e) {
         }
     }
 

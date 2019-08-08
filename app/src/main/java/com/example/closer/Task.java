@@ -2,7 +2,6 @@ package com.example.closer;
 
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.widget.TextView;
 
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
@@ -15,16 +14,14 @@ import java.net.URL;
 
 public class Task extends AsyncTask {
     Handler handler;
-    TextView hiddenMsg;
-    MapPOIItem posMarker;
-    MapPOIItem desMarker;
+    MapPOIItem myMarker;
+    MapPOIItem[] desMarker;
     String receiveMsg = null;
 
-    public Task(Handler h, TextView t, MapPOIItem p1, MapPOIItem p2) {
+    public Task(Handler h, MapPOIItem p1,  MapPOIItem[] p2) {
         super();
         handler = h;
-        hiddenMsg = t;
-        posMarker = p1;
+        myMarker = p1;
         desMarker = p2;
     }
 
@@ -32,10 +29,10 @@ public class Task extends AsyncTask {
     protected Object doInBackground(Object[] objects) {
         try{
             String str;
-            String sendMsg = "ph=01037523482&lat=1";
-            //sendMsg += posMarker.getMapPoint().getMapPointGeoCoord().latitude;
-            sendMsg += "&lon=1";
-            //sendMsg += posMarker.getMapPoint().getMapPointGeoCoord().longitude;
+            String sendMsg = "ph=01037523482&lat=";
+            sendMsg += myMarker.getMapPoint().getMapPointGeoCoord().latitude;
+            sendMsg += "&lon=";
+            sendMsg += myMarker.getMapPoint().getMapPointGeoCoord().longitude;
             sendMsg += "&getph=01028763482";
 
             String ip = "http://iclab.andong.ac.kr/by/closer/index.jsp";
@@ -68,7 +65,7 @@ public class Task extends AsyncTask {
             public void run() {
                 try {
                     String[] desPos = receiveMsg.split("/");
-                    desMarker.setMapPoint(MapPoint.mapPointWithGeoCoord(Double.parseDouble(desPos[1]), Double.parseDouble(desPos[2])));
+                    desMarker[0].setMapPoint(MapPoint.mapPointWithGeoCoord(Double.parseDouble(desPos[1]), Double.parseDouble(desPos[2])));
                 } catch (Exception e) {
                 }
             }
