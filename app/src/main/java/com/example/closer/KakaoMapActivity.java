@@ -83,8 +83,8 @@ public class KakaoMapActivity extends AppCompatActivity {
                 }
             });
         } catch (Exception e) {
-            this.recreate();
-            Log.d("???", e.getMessage());
+            //this.finish();
+            Log.d("??", e.getMessage());
             Toast.makeText(getApplicationContext(), "GPS 연결에 실패하였습니다.", Toast.LENGTH_LONG).show();
         }
     }
@@ -97,10 +97,11 @@ public class KakaoMapActivity extends AppCompatActivity {
             task.execute();
 
             TextView cnt_txt = findViewById(R.id.cnt_txt);
-            cnt_txt.setText("cnt : " + ++cnt);
+            cnt_txt.setText(++cnt);
         } catch (Exception e) {
         }
     }
+
 
     /*
                 TelephonyManager telManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
@@ -117,7 +118,7 @@ public class KakaoMapActivity extends AppCompatActivity {
             marker.setSelectedMarkerType(MapPOIItem.MarkerType.RedPin);
             mapView.addPOIItem(marker);
             mapView.setZoomLevel(1, true);
-        } catch (Exception e) {
+        } catch ( Exception e) {
         }
     }
 
