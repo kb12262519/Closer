@@ -83,7 +83,7 @@ public class KakaoMapActivity extends AppCompatActivity {
                 }
             });
         } catch (Exception e) {
-            //this.finish();
+            this.recreate();
             Log.d("??", e.getMessage());
             Toast.makeText(getApplicationContext(), "GPS 연결에 실패하였습니다.", Toast.LENGTH_LONG).show();
         }

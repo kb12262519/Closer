@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.addItem(ContextCompat.getDrawable(this, R.drawable.kakaologo), "KAKAO", "kakao map");
         adapter.addItem(ContextCompat.getDrawable(this, R.drawable.naverlogo), "NAVER", "naver map");
         adapter.addItem(ContextCompat.getDrawable(this, R.drawable.googlelogo), "GOOGLE", "google map");
+        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.googlelogo), "LIAR", "liar game");
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 } else {
 
-                    Intent intent1;
+                    Intent intent1 = null;
 
                     String kind = ((ListViewItem) adapterView.getItemAtPosition(position)).getTitle();
                     Toast.makeText(getApplicationContext(), kind, Toast.LENGTH_LONG).show();
@@ -48,8 +49,10 @@ public class MainActivity extends AppCompatActivity {
                         intent1 = new Intent(MainActivity.this, KakaoMapActivity.class);
                     } else if (kind.equals("NAVER")) {
                         intent1 = new Intent(MainActivity.this, MapsNaver.class);
-                    } else {
+                    } else if (kind.equals("GOOGLE")) {
                         intent1 = new Intent(MainActivity.this, MapsGoogle.class);
+                    } else if (kind.equals("LIAR")) {
+                        intent1 = new Intent(MainActivity.this, HtmlActivity.class);
                     }
                     startActivity(intent1);
                 }
